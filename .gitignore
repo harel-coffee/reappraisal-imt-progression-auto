@@ -1,0 +1,8 @@
+# Do not upload data
+data/*
+# Old code and stuff
+old/*
+# Do not upload models, as they are too heavy
+*/*/*/*/models
+# Check points
+.ipynb_checkpoints
