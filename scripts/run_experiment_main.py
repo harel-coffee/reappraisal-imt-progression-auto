@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script to run the main predictive analyses
+Script to run the predictive analyses
 
 """
 
@@ -18,6 +18,7 @@ from tqdm import tqdm
 
 from sklearn.model_selection import LeaveOneOut
 from my_sklearn_tools.model_selection import StratifiedKFoldReg
+from my_sklearn_tools.pca_regressors import LassoPCR
 
 def load_input(data_dir, cont_type):
     try:
@@ -64,8 +65,7 @@ def run(X, y, cv_outer = LeaveOneOut(), n_alphas = 1000):
     from sklearn.decomposition import PCA
     from sklearn.pipeline import make_pipeline
     from sklearn.linear_model import Lasso
-    from sklearn.model_selection import GridSearchCV
-    from joblib import Memory
+
 
     # Find alpha range
     alphas = find_alpha_range(X, y, n_alphas = n_alphas)
@@ -82,113 +82,75 @@ def run(X, y, cv_outer = LeaveOneOut(), n_alphas = 1000):
 
         cv_inner = StratifiedKFoldReg(n_splits=5, shuffle=True, random_state=0)
 
-        tmpfolder = mkdtemp()
-        memory = Memory(location=tmpfolder, verbose=0)
+        lasso_pcr = LassoPCR(scale=False, cv=cv_inner, n_jobs=-1, alphas=alphas, lasso_kws = {'max_iter':1e6}, scoring="neg_mean_squared_error")
+        lasso_pcr.fit(X_train, y_train)
+        list_models.append(lasso_pcr)
 
-        pip = make_pipeline(VarianceThreshold(),
-                            PCA(),
-                            Lasso(max_iter=1e6),
-                            memory=memory)
-
-        grid = GridSearchCV(pip,
-                            param_grid={'lasso__alpha': alphas},
-                            cv=cv_inner,
-                            n_jobs=-1,
-                            scoring="neg_mean_squared_error")
-
-        grid.fit(X_train, y_train)
-        list_models.append(grid)
-
-        y_pred = grid.predict(X_test)
+        y_pred = lasso_pcr.predict(X_test)
         list_y_pred.append(y_pred)
-
-        memory.clear(warn=False)
-        shutil.rmtree(tmpfolder)
 
     y_pred = np.concatenate(list_y_pred)
     y_true = np.concatenate(list_y_true)
 
     return y_pred, y_true, list_models
 
-
 def run_transform(X, y,  transform, cv_outer = LeaveOneOut(), n_alphas = 1000):
-    
+
     from sklearn.feature_selection import VarianceThreshold
     from sklearn.decomposition import PCA
     from sklearn.pipeline import make_pipeline
     from sklearn.linear_model import Lasso
-    from sklearn.model_selection import GridSearchCV
-    from joblib import Memory
     from sklearn.compose import TransformedTargetRegressor
     from sklearn.preprocessing import PowerTransformer
 
-    
-    # Find alpha range (JAVI:Rerun this case)
     y_trans = PowerTransformer(method=transform).fit_transform(y[:, None]).flatten()
     alphas = find_alpha_range(X, y_trans, n_alphas = n_alphas)
-    
+
     list_y_pred = []
     list_y_true = []
     list_models = []
-    
+
     for train_index, test_index in tqdm(cv_outer.split(X)):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
-     
+
         list_y_true.append(y_test)
-        
+
         cv_inner = StratifiedKFoldReg(n_splits=5, shuffle=True, random_state=0)
-    
-        tmpfolder = mkdtemp()
-        memory = Memory(location=tmpfolder)
-        
-        pip = make_pipeline(VarianceThreshold(),
-                            PCA(), 
-                            Lasso(max_iter=1e6), 
-                            memory=memory)
-    
-        grid = GridSearchCV(pip, 
-                            param_grid={'lasso__alpha': alphas}, 
-                            cv=cv_inner, 
-                            n_jobs=-1, 
-                            scoring="neg_mean_squared_error")
-        
-        regr_trans = TransformedTargetRegressor(regressor=grid, 
+
+        lasso_pcr = LassoPCR(scale=False, cv=cv_inner, n_jobs=-1, alphas=alphas, lasso_kws = {'max_iter':1e6}, scoring="neg_mean_squared_error")
+
+        regr_trans = TransformedTargetRegressor(regressor=lasso_pcr,
                                                 transformer=PowerTransformer(method=transform))
 
-    
         regr_trans.fit(X_train, y_train)
         list_models.append(regr_trans)
-        
+
         y_pred = regr_trans.predict(X_test)
         list_y_pred.append(y_pred)
-    
-        memory.clear(warn=False)
-        shutil.rmtree(tmpfolder)
 
     y_pred = np.concatenate(list_y_pred)
     y_true = np.concatenate(list_y_true)
 
     return y_pred, y_true, list_models
-    
+
 def save_data(output_dir, y_pred, y_true, list_models):
-        
+
     from joblib import dump
-    
+
     y_preds_df = pd.DataFrame({'y_pred': y_pred, 'y_true': y_true})
     y_preds_df.to_csv(opj(output_dir, "y_preds.csv"), index=False)
-    
+
     # Save models
     Path(opj(output_dir, "models")).mkdir(exist_ok=True)
-    
+
     for fold_id, model in enumerate(list_models):
         dump(model, opj(output_dir, 
                         "models", 
                         "fold_%.3d.joblib" % (fold_id+1)))
-    
-    
+
 def main():
-    
+
     parser = argparse.ArgumentParser(description='Run a particular experiment')
     parser.add_argument('--data_dir', 
                         dest="data_dir", 
