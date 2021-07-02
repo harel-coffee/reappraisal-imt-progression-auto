@@ -3439,7 +3439,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -3729,7 +3729,7 @@
          id="tspan55922"
          x="33.549961"
          y="178.62108"
-         style="stroke-width:0.264584">B</tspan></text>
+         style="stroke-width:0.264584">B)</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:11.2889px;line-height:1.25;font-family:sans-serif;stroke-width:0.264584"
@@ -3740,7 +3740,7 @@
          id="tspan55926"
          x="1.8024272"
          y="13.819133"
-         style="stroke-width:0.264584">A</tspan></text>
+         style="stroke-width:0.264584">A)</tspan></text>
     <g
        id="axes_4-9"
        transform="matrix(0.35277777,0,0,0.35277777,7.1443823,134.12984)" />
