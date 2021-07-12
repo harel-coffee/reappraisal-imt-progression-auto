@@ -5,5 +5,7 @@ Repository that contains the codes, notebooks, results and plots for the paper:
 
 **Authors**: Peter J. Gianaros, Javier Rasero, Thomas E. Kraynak, Caitlin M. DuPont, James J. Gross, Kateri McRae, Aidan G.C. Wright, Timothy D. Verstynen, Emma Barinas-Mitchell
 
-<div style="text-align:center"><img src=https://github.com/CoAxLab/reappraisal-imt-progression/blob/master/plots/readme.png/></div>
+<p align="center">
+  <img src="https://github.com/CoAxLab/reappraisal-imt-progression/blob/master/plots/readme.png" alt="Readme image"/>
+</p>
 
