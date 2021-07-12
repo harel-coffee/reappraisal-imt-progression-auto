@@ -5,6 +5,8 @@ Repository that contains the codes, notebooks, results and plots for the paper:
 
 **Authors**: Peter J. Gianaros, Javier Rasero, Thomas E. Kraynak, Caitlin M. DuPont, James J. Gross, Kateri McRae, Aidan G.C. Wright, Timothy D. Verstynen, Emma Barinas-Mitchell
 
+
+### A LassoPCR model to predict Multiyear Progression of Preclinical Atherosclerosis from Viewing and Reappraising Affective Scenes
 <p align="center">
   <img src="https://github.com/CoAxLab/reappraisal-imt-progression/blob/master/plots/readme.png" alt="Readme image"/>
 </p>
